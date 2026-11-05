@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>F1 Championship Hub</title>
+    <title>Amigo Invisible Hub</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -48,525 +48,379 @@
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
         }
-        .f1-gradient-border {
-            position: relative;
-        }
-        .f1-gradient-border::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: linear-gradient(90deg, #e10600, transparent);
-        }
     </style>
-</head>+
+</head>
 <body class="bg-f1dark text-gray-100 min-h-screen antialiased selection:bg-f1red selection:text-white">
     <div id="root"></div>
 
     <script type="text/babel">
         const { useState, useEffect } = React;
         const { 
-            Trophy, Timer, Calendar, Newspaper, Users, Shield, 
-            ChevronRight, MapPin, Flag, Clock, Award, Flame, Zap, Play, Search, Filter,
-            Sparkles, TrendingUp, ArrowUpRight, Globe
+            Gift, Users, Sparkles, Plus, Trash2, Eye, EyeOff, RotateCcw, CheckCircle, AlertCircle, Heart, DollarSign
         } = lucide;
 
-        // Mock Data
-        const nextGP = {
-            name: "Gran Premio de Mónaco 2024",
-            circuit: "Circuit de Monaco",
-            location: "Monte Carlo, Mónaco",
-            date: "2024-05-26T15:00:00",
-            localTime: "15:00 CEST",
-            laps: 78,
-            circuitLength: "3.337 km",
-            image: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=1200&q=80"
-        };
-
-        const driversStandings = [
-            { pos: 1, name: "Max Verstappen", team: "Red Bull Racing", pts: 136, color: "bg-blue-600", trend: "up" },
-            { pos: 2, name: "Sergio Pérez", team: "Red Bull Racing", pts: 103, color: "bg-blue-600", trend: "same" },
-            { pos: 3, name: "Charles Leclerc", team: "Ferrari", pts: 98, color: "bg-red-600", trend: "up" },
-            { pos: 4, name: "Lando Norris", team: "McLaren", pts: 83, color: "bg-orange-500", trend: "up" },
-            { pos: 5, name: "Carlos Sainz", team: "Ferrari", pts: 83, color: "bg-red-600", trend: "down" },
-            { pos: 6, name: "Oscar Piastri", team: "McLaren", pts: 41, color: "bg-orange-500", trend: "same" },
-            { pos: 7, name: "George Russell", team: "Mercedes", pts: 37, color: "bg-cyan-500", trend: "up" },
-            { pos: 8, name: "Fernando Alonso", team: "Aston Martin", pts: 33, color: "bg-emerald-600", trend: "down" },
-            { pos: 9, name: "Lewis Hamilton", team: "Mercedes", pts: 27, color: "bg-cyan-500", trend: "down" },
-            { pos: 10, name: "Lance Stroll", team: "Aston Martin", pts: 9, color: "bg-emerald-600", trend: "same" }
-        ];
-
-        const constructorsStandings = [
-            { pos: 1, name: "Red Bull Racing", pts: 239, color: "bg-blue-600" },
-            { pos: 2, name: "Ferrari", pts: 187, color: "bg-red-600" },
-            { pos: 3, name: "McLaren", pts: 124, color: "bg-orange-500" },
-            { pos: 4, name: "Mercedes", pts: 64, color: "bg-cyan-500" },
-            { pos: 5, name: "Aston Martin", pts: 42, color: "bg-emerald-600" },
-            { pos: 6, name: "RB", pts: 19, color: "bg-indigo-600" },
-            { pos: 7, name: "Haas", pts: 7, color: "bg-gray-400" },
-            { pos: 8, name: "Alpine", pts: 2, color: "bg-pink-600" },
-            { pos: 9, name: "Williams", pts: 2, color: "bg-blue-400" },
-            { pos: 10, name: "Kick Sauber", pts: 0, color: "bg-green-500" }
-        ];
-
-        const lastGP = {
-            name: "Gran Premio de Emilia-Romaña 2024",
-            circuit: "Autodromo Internazionale Enzo e Dino Ferrari",
-            podium: [
-                { pos: 1, name: "Max Verstappen", team: "Red Bull Racing", time: "1:25:38.426" },
-                { pos: 2, name: "Lando Norris", team: "McLaren", time: "+0.725s" },
-                { pos: 3, name: "Charles Leclerc", team: "Ferrari", time: "+7.916s" }
-            ],
-            fastestLap: {
-                driver: "George Russell",
-                team: "Mercedes",
-                time: "1:18.589",
-                lap: 54
-            }
-        };
-
-        const newsFeed = [
-            {
-                id: 1,
-                title: "Newey anuncia su salida de Red Bull: ¿Cuál será su próximo destino?",
-                time: "Hace 2 horas",
-                category: "Mercado",
-                image: "https://images.unsplash.com/photo-1568605117036-5fe5e7bab0b7?auto=format&fit=crop&w=600&q=80"
-            },
-            {
-                id: 2,
-                title: "Ferrari prepara un paquete de mejoras crucial para Mónaco",
-                time: "Hace 5 horas",
-                category: "Técnica",
-                image: "https://images.unsplash.com/photo-1511919884226-fd3cad34687c?auto=format&fit=crop&w=600&q=80"
-            },
-            {
-                id: 3,
-                title: "Análisis: La estrecha lucha entre Red Bull, McLaren y Ferrari",
-                time: "Ayer",
-                category: "Análisis",
-                image: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?auto=format&fit=crop&w=600&q=80"
-            }
-        ];
-
-        const calendarRaces = [
-            { round: 1, name: "GP de Baréin", circuit: "Sakhir", date: "02 Mar", winner: "Max Verstappen", status: "completed" },
-            { round: 2, name: "GP de Arabia Saudí", circuit: "Jeddah", date: "09 Mar", winner: "Max Verstappen", status: "completed" },
-            { round: 3, name: "GP de Australia", circuit: "Melbourne", date: "24 Mar", winner: "Carlos Sainz", status: "completed" },
-            { round: 4, name: "GP de Japón", circuit: "Suzuka", date: "07 Abr", winner: "Max Verstappen", status: "completed" },
-            { round: 5, name: "GP de China", circuit: "Shanghái", date: "21 Abr", winner: "Max Verstappen", status: "completed" },
-            { round: 6, name: "GP de Miami", circuit: "Miami", date: "05 May", winner: "Lando Norris", status: "completed" },
-            { round: 7, name: "GP de Emilia-Romaña", circuit: "Imola", date: "19 May", winner: "Max Verstappen", status: "completed" },
-            { round: 8, name: "GP de Mónaco", circuit: "Monte Carlo", date: "26 May", winner: "- (Próximamente)", status: "upcoming" },
-            { round: 9, name: "GP de Canadá", circuit: "Montreal", date: "09 Jun", winner: "-", status: "upcoming" },
-            { round: 10, name: "GP de España", circuit: "Barcelona", date: "23 Jun", winner: "-", status: "upcoming" }
-        ];
-
         function App() {
-            const [activeTab, setActiveTab] = useState('home');
-            const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-            const [searchTerm, setSearchTerm] = useState('');
-            const [statusFilter, setStatusFilter] = useState('all');
+            const [participants, setParticipants] = useState([
+                { id: 1, name: "Ana", email: "ana@example.com", wishlist: "Libros de misterio, taza bonita" },
+                { id: 2, name: "Carlos", email: "carlos@example.com", wishlist: "Café de especialidad, calcetines divertidos" },
+                { id: 3, name: "Elena", email: "elena@example.com", wishlist: "Velas aromáticas, chocolatinas" },
+                { id: 4, name: "David", email: "david@example.com", wishlist: "Camiseta de grupos de rock, vinilos" }
+            ]);
 
-            // Countdown timer effect
-            useEffect(() => {
-                const targetDate = new Date(nextGP.date).getTime();
-                const interval = setInterval(() => {
-                    const now = new Date().getTime();
-                    const difference = targetDate - now;
+            const [newName, setNewName] = useState('');
+            const [newEmail, setNewEmail] = useState('');
+            const [newWishlist, setNewWishlist] = useState('');
+            const [budget, setBudget] = useState('20€');
+            const [exclusions, setExclusions] = useState([]); // [{from: id, to: id}]
+            const [newExFrom, setNewExFrom] = useState('');
+            const [newExTo, setNewExTo] = useState('');
+            
+            const [results, setResults] = useState([]); // [{giverId, receiverId, revealed}]
+            const [selectedGiverId, setSelectedGiverId] = useState('');
+            const [myAssignment, setMyAssignment] = useState(null);
+            const [errorMsg, setErrorMsg] = useState('');
+            const [successMsg, setSuccessMsg] = useState('');
+            const [isAnimating, setIsAnimating] = useState(false);
 
-                    if (difference > 0) {
-                        setTimeLeft({
-                            days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                            hours: Math.floor((difference % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
-                            minutes: Math.floor((difference % (1000 * 60 * 60)) / (1000 * 60)),
-                            seconds: Math.floor((difference % (1000 * 60)) / 1000)
-                        });
+            // Agregar participante
+            const handleAddParticipant = (e) => {
+                e.preventDefault();
+                if (!newName.trim()) return;
+                const newParticipant = {
+                    id: Date.now(),
+                    name: newName.trim(),
+                    email: newEmail.trim() || `${newName.toLowerCase().replace(/\s+/g, '')}@example.com`,
+                    wishlist: newWishlist.trim() || 'Cualquier detalle es bienvenido'
+                };
+                setParticipants([...participants, newParticipant]);
+                setNewName('');
+                setNewEmail('');
+                setNewWishlist('');
+                setSuccessMsg('');
+            };
+
+            // Eliminar participante
+            const handleRemoveParticipant = (id) => {
+                setParticipants(participants.filter(p => p.id !== id));
+                setResults([]);
+                setSuccessMsg('');
+            };
+
+            // Agregar exclusión
+            const handleAddExclusion = (e) => {
+                e.preventDefault();
+                if (!newExFrom || !newExTo || newExFrom === newExTo) return;
+                // Evitar duplicados
+                const exists = exclusions.some(ex => (ex.from === Number(newExFrom) && ex.to === Number(newExTo)));
+                if (!exists) {
+                    setExclusions([...exclusions, { from: Number(newExFrom), to: Number(newExTo) }]);
+                }
+                setNewExFrom('');
+                setNewExTo('');
+            };
+
+            // Eliminar exclusión
+            const handleRemoveExclusion = (index) => {
+                setExclusions(exclusions.filter((_, i) => i !== index));
+            };
+
+            // Algoritmo de emparejamiento (Backtracking / Barajado)
+            const generateDraw = () => {
+                setErrorMsg('');
+                setSuccessMsg('');
+                if (participants.length < 3) {
+                    setErrorMsg('Necesitas al menos 3 participantes para hacer el amigo invisible.');
+                    return;
+                }
+
+                setIsAnimating(true);
+                setTimeout(() => {
+                    let attempts = 0;
+                    let success = false;
+                    let receivers = [];
+
+                    while (attempts < 1000 && !success) {
+                        attempts++;
+                        receivers = [...participants].sort(() => Math.random() - 0.5);
+                        
+                        let valid = true;
+                        for (let i = 0; i < participants.length; i++) {
+                            const giver = participants[i];
+                            const receiver = receivers[i];
+
+                            // No se puede regalar a uno mismo
+                            if (giver.id === receiver.id) {
+                                valid = false;
+                                break;
+                            }
+
+                            // Comprobar exclusiones
+                            const isExcluded = exclusions.some(ex => ex.from === giver.id && ex.to === receiver.id);
+                            if (isExcluded) {
+                                valid = false;
+                                break;
+                            }
+                        }
+
+                        if (valid) {
+                            success = true;
+                        }
                     }
-                }, 1000);
-                return () => clearInterval(interval);
-            }, []);
 
-            const filteredRaces = calendarRaces.filter(race => {
-                const matchesSearch = race.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                                  race.circuit.toLowerCase().includes(searchTerm.toLowerCase());
-                const matchesStatus = statusFilter === 'all' || race.status === statusFilter;
-                return matchesSearch && matchesStatus;
-            });
+                    if (success) {
+                        const newRes = participants.map((giver, idx) => ({
+                            giverId: giver.id,
+                            receiverId: receivers[idx].id,
+                            revealed: false
+                        }));
+                        setResults(newRes);
+                        setSuccessMsg('¡Sorteo realizado con éxito! Cada participante ya puede consultar a quién le regala.');
+                    } else {
+                        setErrorMsg('No se ha podido encontrar una combinación válida con estas exclusiones. Prueba a eliminar alguna restricción.');
+                    }
+                    setIsAnimating(false);
+                }, 800);
+            };
+
+            // Consultar asignación individual
+            const handleCheckAssignment = () => {
+                if (!selectedGiverId) return;
+                const assignment = results.find(r => r.giverId === Number(selectedGiverId));
+                if (assignment) {
+                    const receiver = participants.find(p => p.id === assignment.receiverId);
+                    setMyAssignment(receiver);
+                }
+            };
 
             return (
                 <div className="min-h-screen flex flex-col bg-f1dark text-white relative">
-                    {/* Background Decorative Glows */}
+                    {/* Background Glows */}
                     <div className="absolute top-0 left-1/4 w-96 h-96 bg-f1red/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <div className="absolute top-1/3 right-10 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="absolute top-1/3 right-10 w-80 h-80 bg-purple-600/10 rounded-full blur-3xl pointer-events-none"></div>
 
-                    {/* Top Navigation Bar */}
-                    <header className="glass-effect border-b border-f1border sticky top-0 z-50 transition-all">
+                    {/* Header */}
+                    <header className="glass-effect border-b border-f1border sticky top-0 z-50">
                         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                             <div className="flex items-center justify-between h-20">
-                                <div className="flex items-center space-x-3 cursor-pointer" onClick={() => setActiveTab('home')}>
-                                    <div className="bg-gradient-to-br from-f1red to-red-700 px-3.5 py-1.5 text-2xl font-black italic tracking-tighter rounded-lg shadow-lg shadow-f1red/30 transform hover:scale-105 transition">
-                                        F1
+                                <div className="flex items-center space-x-3 cursor-pointer">
+                                    <div className="bg-gradient-to-br from-f1red to-pink-600 p-2.5 rounded-xl shadow-lg shadow-f1red/30 text-white">
+                                        <Gift className="w-6 h-6" />
                                     </div>
                                     <div>
-                                        <span className="font-black tracking-wider uppercase text-lg bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Championship</span>
-                                        <span className="text-f1red font-black tracking-widest text-lg block -mt-1">HUB 2024</span>
+                                        <span className="font-black tracking-wider uppercase text-lg bg-gradient-to-r from-white to-gray-400 bg-clip-text text-transparent">Amigo Invisible</span>
+                                        <span className="text-f1red font-black tracking-widest text-lg block -mt-1">HUB</span>
                                     </div>
                                 </div>
-                                <nav className="flex space-x-2 sm:space-x-3 bg-f1gray/40 p-1.5 rounded-xl border border-f1border">
-                                    <button 
-                                        onClick={() => setActiveTab('home')}
-                                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center space-x-2 ${activeTab === 'home' ? 'bg-f1red text-white shadow-md shadow-f1red/30 scale-[1.02]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-                                    >
-                                        <Timer className="w-4 h-4" />
-                                        <span>Inicio</span>
-                                    </button>
-                                    <button 
-                                        onClick={() => setActiveTab('standings')}
-                                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center space-x-2 ${activeTab === 'standings' ? 'bg-f1red text-white shadow-md shadow-f1red/30 scale-[1.02]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-                                    >
-                                        <Trophy className="w-4 h-4" />
-                                        <span>Clasificación</span>
-                                    </button>
-                                    <button 
-                                        onClick={() => setActiveTab('calendar')}
-                                        className={`px-4 py-2 rounded-lg text-sm font-bold transition-all duration-200 flex items-center space-x-2 ${activeTab === 'calendar' ? 'bg-f1red text-white shadow-md shadow-f1red/30 scale-[1.02]' : 'text-gray-400 hover:text-white hover:bg-white/5'}`}
-                                    >
-                                        <Calendar className="w-4 h-4" />
-                                        <span>Calendario</span>
-                                    </button>
-                                </nav>
+                                <div className="text-xs sm:text-sm font-bold text-gray-300 bg-f1card px-4 py-2 rounded-xl border border-f1border flex items-center gap-2">
+                                    <DollarSign className="w-4 h-4 text-f1red" /> Presupuesto: <span className="text-white font-black">{budget}</span>
+                                </div>
                             </div>
                         </div>
                     </header>
 
-                    {/* Main Content Area */}
-                    <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
-                        {activeTab === 'home' && (
-                            <div className="space-y-10">
-                                {/* Hero Countdown Section */}
-                                <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-f1card to-f1dark border border-f1border shadow-2xl group">
-                                    <div className="absolute inset-0 opacity-40 mix-blend-overlay bg-cover bg-center group-hover:scale-105 transition duration-700" style={{backgroundImage: `url(${nextGP.image})`}}></div>
-                                    <div className="absolute inset-0 bg-gradient-to-t from-f1dark via-f1dark/60 to-transparent"></div>
-                                    <div className="relative p-6 sm:p-12 flex flex-col lg:flex-row justify-between items-center gap-8">
-                                        <div className="space-y-4 text-center lg:text-left max-w-xl">
-                                            <div className="inline-flex items-center space-x-2 bg-f1red/20 text-f1red px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-f1red/30 shadow-inner animate-pulse-slow">
-                                                <Flame className="w-4 h-4 text-f1red" />
-                                                <span>Próximo Gran Premio</span>
-                                            </div>
-                                            <h1 className="text-4xl sm:text-6xl font-black italic tracking-tight drop-shadow-md">{nextGP.name}</h1>
-                                            <div className="flex flex-wrap justify-center lg:justify-start gap-4 text-sm text-gray-300 font-medium">
-                                                <span className="flex items-center gap-1.5 bg-f1dark/60 px-3 py-1.5 rounded-lg border border-f1border"><MapPin className="w-4 h-4 text-f1red" /> {nextGP.circuit}</span>
-                                                <span className="flex items-center gap-1.5 bg-f1dark/60 px-3 py-1.5 rounded-lg border border-f1border"><Clock className="w-4 h-4 text-f1red" /> {nextGP.localTime}</span>
-                                            </div>
-                                        </div>
+                    {/* Main Content */}
+                    <main className="flex-grow max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-10 relative z-10">
+                        {/* Hero Section */}
+                        <div className="relative rounded-3xl overflow-hidden bg-gradient-to-br from-f1card to-f1dark border border-f1border p-8 sm:p-12 shadow-2xl flex flex-col items-center text-center">
+                            <div className="inline-flex items-center space-x-2 bg-f1red/20 text-f1red px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-widest border border-f1red/30 mb-4 animate-pulse-slow">
+                                <Sparkles className="w-4 h-4" />
+                                <span>Sorteos Fáciles y Secretos</span>
+                            </div>
+                            <h1 className="text-4xl sm:text-6xl font-black italic tracking-tight mb-4">Organiza tu Amigo Invisible</h1>
+                            <p className="text-gray-400 max-w-2xl text-sm sm:text-base font-medium mb-8">
+                                Añade a los participantes, define exclusiones si es necesario (ej: parejas que no se deben regalar) ¡y genera los emparejamientos de forma totalmente aleatoria y sin spoilers!
+                            </p>
 
-                                        {/* Countdown Grid */}
-                                        <div className="grid grid-cols-4 gap-3 sm:gap-4 text-center">
-                                            <div className="bg-f1dark/90 backdrop-blur-md border border-f1border p-3 sm:p-5 rounded-2xl min-w-[75px] sm:min-w-[95px] shadow-xl">
-                                                <div className="text-3xl sm:text-5xl font-black text-f1red tracking-tighter">{timeLeft.days}</div>
-                                                <div className="text-[11px] sm:text-xs text-gray-400 uppercase font-bold tracking-wider mt-1">Días</div>
-                                            </div>
-                                            <div className="bg-f1dark/90 backdrop-blur-md border border-f1border p-3 sm:p-5 rounded-2xl min-w-[75px] sm:min-w-[95px] shadow-xl">
-                                                <div className="text-3xl sm:text-5xl font-black text-white tracking-tighter">{timeLeft.hours}</div>
-                                                <div className="text-[11px] sm:text-xs text-gray-400 uppercase font-bold tracking-wider mt-1">Horas</div>
-                                            </div>
-                                            <div className="bg-f1dark/90 backdrop-blur-md border border-f1border p-3 sm:p-5 rounded-2xl min-w-[75px] sm:min-w-[95px] shadow-xl">
-                                                <div className="text-3xl sm:text-5xl font-black text-white tracking-tighter">{timeLeft.minutes}</div>
-                                                <div className="text-[11px] sm:text-xs text-gray-400 uppercase font-bold tracking-wider mt-1">Min</div>
-                                            </div>
-                                            <div className="bg-f1dark/90 backdrop-blur-md border border-f1border p-3 sm:p-5 rounded-2xl min-w-[75px] sm:min-w-[95px] shadow-xl">
-                                                <div className="text-3xl sm:text-5xl font-black text-f1red tracking-tighter animate-pulse">{timeLeft.seconds}</div>
-                                                <div className="text-[11px] sm:text-xs text-gray-400 uppercase font-bold tracking-wider mt-1">Seg</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            {/* Botón principal de sorteo */}
+                            <button 
+                                onClick={generateDraw}
+                                disabled={isAnimating}
+                                className="bg-gradient-to-r from-f1red to-red-700 hover:from-red-600 hover:to-red-800 text-white font-black italic uppercase tracking-wider px-8 py-4 rounded-2xl shadow-xl shadow-f1red/40 transform hover:scale-105 transition duration-200 flex items-center gap-3 text-lg"
+                            >
+                                <Gift className={`w-6 h-6 ${isAnimating ? 'animate-spin' : ''}`} />
+                                {isAnimating ? 'Barajando nombres...' : '¡Realizar Sorteo Mágico!'}
+                            </button>
+
+                            {errorMsg && (
+                                <div className="mt-4 p-3 bg-red-500/20 border border-red-500/40 rounded-xl text-red-300 text-xs sm:text-sm flex items-center gap-2">
+                                    <AlertCircle className="w-4 h-4 flex-shrink-0" /> {errorMsg}
                                 </div>
-
-                                {/* Grid for Standings Widgets & Last GP */}
-                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                                    {/* Drivers Widget */}
-                                    <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-xl flex flex-col justify-between hover:border-gray-700 transition duration-300">
-                                        <div>
-                                            <div className="flex justify-between items-center mb-6 pb-3 border-b border-f1border">
-                                                <h2 className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2.5">
-                                                    <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
-                                                        <Users className="w-4 h-4" />
-                                                    </div> 
-                                                    Pilotos
-                                                </h2>
-                                                <button onClick={() => setActiveTab('standings')} className="text-xs text-f1red hover:text-red-400 font-bold flex items-center gap-1 group">Ver todo <ChevronRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition"/></button>
-                                            </div>
-                                            <div className="space-y-3.5">
-                                                {driversStandings.slice(0, 5).map((driver) => (
-                                                    <div key={driver.pos} className="p-2.5 rounded-xl bg-f1dark/50 border border-f1border/50 hover:bg-f1dark transition">
-                                                        <div className="flex justify-between text-sm mb-1.5">
-                                                            <span className="font-bold flex items-center gap-2.5">
-                                                                <span className="text-gray-500 font-black w-4 text-center">{driver.pos}</span> 
-                                                                {driver.name}
-                                                            </span>
-                                                            <span className="font-black text-f1red">{driver.pts} <span className="text-[10px] text-gray-400 font-normal">PTS</span></span>
-                                                        </div>
-                                                        <div className="w-full bg-gray-900 h-2 rounded-full overflow-hidden p-0.5 border border-f1border">
-                                                            <div className={`${driver.color} h-full rounded-full transition-all duration-500`} style={{ width: `${(driver.pts / 150) * 100}%` }}></div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Constructors Widget */}
-                                    <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-xl flex flex-col justify-between hover:border-gray-700 transition duration-300">
-                                        <div>
-                                            <div className="flex justify-between items-center mb-6 pb-3 border-b border-f1border">
-                                                <h2 className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2.5">
-                                                    <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
-                                                        <Shield className="w-4 h-4" />
-                                                    </div> 
-                                                    Constructores
-                                                </h2>
-                                                <button onClick={() => setActiveTab('standings')} className="text-xs text-f1red hover:text-red-400 font-bold flex items-center gap-1 group">Ver todo <ChevronRight className="w-3.5 h-3.5 transform group-hover:translate-x-1 transition"/></button>
-                                            </div>
-                                            <div className="space-y-3.5">
-                                                {constructorsStandings.slice(0, 5).map((team) => (
-                                                    <div key={team.pos} className="p-2.5 rounded-xl bg-f1dark/50 border border-f1border/50 hover:bg-f1dark transition">
-                                                        <div className="flex justify-between text-sm mb-1.5">
-                                                            <span className="font-bold flex items-center gap-2.5">
-                                                                <span className="text-gray-500 font-black w-4 text-center">{team.pos}</span> 
-                                                                {team.name}
-                                                            </span>
-                                                            <span className="font-black text-f1red">{team.pts} <span className="text-[10px] text-gray-400 font-normal">PTS</span></span>
-                                                        </div>
-                                                        <div className="w-full bg-gray-900 h-2 rounded-full overflow-hidden p-0.5 border border-f1border">
-                                                            <div className={`${team.color} h-full rounded-full transition-all duration-500`} style={{ width: `${(team.pts / 250) * 100}%` }}></div>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Last GP Summary */}
-                                    <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-xl flex flex-col justify-between hover:border-gray-700 transition duration-300">
-                                        <div>
-                                            <div className="flex justify-between items-center mb-2 pb-3 border-b border-f1border">
-                                                <h2 className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2.5">
-                                                    <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
-                                                        <Award className="w-4 h-4" />
-                                                    </div> 
-                                                    Último GP
-                                                </h2>
-                                                <span className="text-xs bg-f1dark border border-f1border text-gray-300 font-bold px-2.5 py-1 rounded-lg">Imola</span>
-                                            </div>
-                                            <p className="text-xs text-gray-400 mb-4 font-semibold">{lastGP.name}</p>
-                                            <div className="space-y-3">
-                                                {lastGP.podium.map((driver) => (
-                                                    <div key={driver.pos} className="flex items-center justify-between bg-f1dark/70 p-3 rounded-xl border border-f1border/60">
-                                                        <div className="flex items-center space-x-3">
-                                                            <span className={`w-7 h-7 flex items-center justify-center rounded-lg font-black text-xs shadow-md ${driver.pos === 1 ? 'bg-gradient-to-br from-yellow-400 to-yellow-600 text-black' : driver.pos === 2 ? 'bg-gradient-to-br from-gray-200 to-gray-400 text-black' : 'bg-gradient-to-br from-amber-600 to-amber-800 text-white'}`}>
-                                                                {driver.pos}
-                                                            </span>
-                                                            <div>
-                                                                <div className="text-sm font-bold">{driver.name}</div>
-                                                                <div className="text-[11px] text-gray-400 font-medium">{driver.team}</div>
-                                                            </div>
-                                                        </div>
-                                                        <span className="text-xs font-mono font-bold text-gray-300 bg-gray-900 px-2 py-1 rounded border border-gray-800">{driver.time}</span>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                            <div className="mt-4 pt-3 border-t border-f1border flex items-center justify-between text-xs">
-                                                <span className="text-gray-400 flex items-center gap-1.5 font-bold"><Zap className="w-3.5 h-3.5 text-f1red" /> Vuelta Rápida</span>
-                                                <span className="font-bold text-gray-200">{lastGP.fastestLap.driver} <span className="text-f1red font-mono font-black">({lastGP.fastestLap.time})</span></span>
-                                            </div>
-                                        </div>
-                                    </div>
+                            </li>
+                            {successMsg && (
+                                <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/40 rounded-xl text-emerald-300 text-xs sm:text-sm flex items-center gap-2">
+                                    <CheckCircle className="w-4 h-4 flex-shrink-0" /> {successMsg}
                                 </div>
+                            )}
+                        </div>
 
-                                {/* News Feed Section */}
-                                <div className="space-y-6">
-                                    <div className="flex items-center justify-between">
-                                        <h2 className="text-2xl font-black italic uppercase tracking-wider flex items-center gap-3">
-                                            <div className="p-2 bg-f1red text-white rounded-lg">
-                                                <Newspaper className="w-5 h-5" />
-                                            </div>
-                                            Últimas Noticias
+                        {/* Grid: Participantes & Exclusiones */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Sección Participantes */}
+                            <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-xl flex flex-col justify-between">
+                                <div>
+                                    <div className="flex justify-between items-center mb-6 pb-3 border-b border-f1border">
+                                        <h2 className="text-lg font-black uppercase italic tracking-wider flex items-center gap-2.5">
+                                            <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
+                                                <Users className="w-4 h-4" />
+                                            </div> 
+                                            Participantes ({participants.length})
                                         </h2>
                                     </div>
-                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                                        {newsFeed.map((news) => (
-                                            <div key={news.id} className="bg-f1card rounded-2xl border border-f1border overflow-hidden hover:border-f1red/50 transition duration-300 flex flex-col justify-between group shadow-xl">
+
+                                    {/* Formulario nuevo participante */}
+                                    <form onSubmit={handleAddParticipant} className="space-y-3 mb-6 bg-f1dark/60 p-4 rounded-xl border border-f1border">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            <input 
+                                                type="text" 
+                                                placeholder="Nombre del participante" 
+                                                value={newName}
+                                                onChange={(e) => setNewName(e.target.value)}
+                                                className="bg-f1card border border-f1border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-f1red"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                placeholder="Ideas de regalo (Opcional)" 
+                                                value={newWishlist}
+                                                onChange={(e) => setNewWishlist(e.target.value)}
+                                                className="bg-f1card border border-f1border rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-f1red"
+                                            />
+                                        </div>
+                                        <button type="submit" className="w-full bg-f1red hover:bg-red-700 text-white font-bold py-2 rounded-xl text-xs uppercase tracking-wider transition flex items-center justify-center gap-2">
+                                            <Plus className="w-4 h-4" /> Añadir Participante
+                                        </button>
+                                    </form>
+
+                                    {/* Lista */}
+                                    <div className="space-y-2.5 max-h-72 overflow-y-auto pr-1">
+                                        {participants.map((p) => (
+                                            <div key={p.id} className="flex items-center justify-between bg-f1dark/80 p-3 rounded-xl border border-f1border/60">
                                                 <div>
-                                                    <div className="h-48 overflow-hidden relative">
-                                                        <div className="absolute inset-0 bg-gradient-to-t from-f1card to-transparent opacity-60 z-10"></div>
-                                                        <img src={news.image} alt={news.title} className="w-full h-full object-cover group-hover:scale-110 transition duration-500" />
-                                                        <span className="absolute top-3 left-3 z-20 text-xs font-bold text-white bg-f1red px-2.5 py-1 rounded-lg shadow-md">
-                                                            {news.category}
-                                                        </span>
-                                                    </div>
-                                                    <div className="p-6">
-                                                        <span className="text-xs text-gray-400 font-semibold mb-2 block">{news.time}</span>
-                                                        <h3 className="font-black text-lg leading-snug group-hover:text-f1red transition duration-200">{news.title}</h3>
-                                                    </div>
+                                                    <div className="font-bold text-sm text-white">{p.name}</div>
+                                                    <div className="text-xs text-gray-400 italic">💡 Desea: {p.wishlist}</div>
                                                 </div>
-                                                <div className="px-6 pb-6 pt-0">
-                                                    <span className="text-xs font-bold text-f1red flex items-center gap-1 group-hover:translate-x-1 transition duration-200 cursor-pointer">
-                                                        Leer artículo completo <ArrowUpRight className="w-3.5 h-3.5" />
-                                                    </span>
-                                                </div>
+                                                <button onClick={() => handleRemoveParticipant(p.id)} className="text-gray-500 hover:text-red-400 p-1.5 transition">
+                                                    <Trash2 className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
                             </div>
-                        )}
 
-                        {activeTab === 'standings' && (
-                            <div className="space-y-8 animate-fadeIn">
-                                <div className="border-b border-f1border pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                        <h1 className="text-3xl sm:text-4xl font-black italic uppercase">Clasificación del Campeonato 2024</h1>
-                                        <p className="text-sm text-gray-400 mt-1">Puntuación oficial de pilotos y escuderías actualizada tras el último gran premio.</p>
-                                    </div>
-                                    <div className="bg-f1card px-4 py-2 rounded-xl border border-f1border flex items-center gap-2 text-xs text-gray-300">
-                                        <Globe className="w-4 h-4 text-f1red" /> Temporada Oficial FIA 2024
+                            {/* Sección Exclusiones y Presupuesto */}
+                            <div className="space-y-8">
+                                <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-xl">
+                                    <h2 className="text-lg font-black uppercase italic tracking-wider mb-4 pb-3 border-b border-f1border flex items-center gap-2.5">
+                                        <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
+                                            <AlertCircle className="w-4 h-4" />
+                                        </div> 
+                                        Restricciones / Exclusiones
+                                    </h2>
+                                    <p className="text-xs text-gray-400 mb-4">Evita que ciertas personas se regalen entre sí (por ejemplo, parejas).</p>
+                                    
+                                    <form onSubmit={handleAddExclusion} className="flex flex-col sm:flex-row gap-2 mb-4">
+                                        <select 
+                                            value={newExFrom} 
+                                            onChange={(e) => setNewExFrom(e.target.value)}
+                                            className="bg-f1dark border border-f1border rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-f1red flex-1"
+                                        >
+                                            <option value="">¿Quién NO regala a...</option>
+                                            {participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        </select>
+                                        <select 
+                                            value={newExTo} 
+                                            onChange={(e) => setNewExTo(e.target.value)}
+                                            className="bg-f1dark border border-f1border rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-f1red flex-1"
+                                        >
+                                            <option value="">...a esta persona?</option>
+                                            {participants.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                        </select>
+                                        <button type="submit" className="bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">
+                                            Añadir
+                                        </button>
+                                    </form>
+
+                                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                                        {exclusions.length === 0 ? (
+                                            <p className="text-xs text-gray-500 italic">No hay restricciones añadidas.</p>
+                                        ) : (
+                                            exclusions.map((ex, idx) => {
+                                                const fromName = participants.find(p => p.id === ex.from)?.name;
+                                                const toName = participants.find(p => p.id === ex.to)?.name;
+                                                return (
+                                                    <div key={idx} className="flex items-center justify-between bg-f1dark/60 px-3 py-2 rounded-xl text-xs border border-f1border">
+                                                        <span><strong className="text-f1red">{fromName}</strong> no puede regalar a <strong className="text-f1red">{toName}</strong></span>
+                                                        <button onClick={() => handleRemoveExclusion(idx)} className="text-gray-500 hover:text-red-400"><Trash2 className="w-3.5 h-3.5"/></button>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                                    {/* Drivers Full Standings */}
-                                    <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-2xl">
-                                        <h2 className="text-xl font-black italic uppercase tracking-wider mb-6 flex items-center gap-2.5">
-                                            <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
-                                                <Users className="w-5 h-5" />
-                                            </div> 
-                                            Mundial de Pilotos
-                                        </h2>
-                                        <div className="space-y-3">
-                                            {driversStandings.map((driver) => (
-                                                <div key={driver.pos} className="bg-f1dark/80 p-4 rounded-xl border border-f1border hover:border-gray-700 transition space-y-3">
-                                                    <div className="flex justify-between items-center">
-                                                        <div className="flex items-center space-x-3.5">
-                                                            <span className={`font-black text-lg w-7 h-7 flex items-center justify-center rounded-lg ${driver.pos === 1 ? 'bg-f1red text-white' : 'bg-gray-800 text-gray-300'}`}>
-                                                                {driver.pos}
-                                                            </span>
-                                                            <div>
-                                                                <div className="font-black text-base">{driver.name}</div>
-                                                                <div className="text-xs text-gray-400 font-semibold">{driver.team}</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-2xl font-black text-f1red">{driver.pts} <span className="text-xs text-gray-400 font-bold">PTS</span></div>
-                                                    </div>
-                                                    <div className="w-full bg-gray-900 h-2 rounded-full overflow-hidden p-0.5 border border-f1border">
-                                                        <div className={`${driver.color} h-full rounded-full transition-all duration-500`} style={{ width: `${(driver.pts / 150) * 100}%` }}></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    {/* Constructors Full Standings */}
-                                    <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-2xl">
-                                        <h2 className="text-xl font-black italic uppercase tracking-wider mb-6 flex items-center gap-2.5">
-                                            <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
-                                                <Shield className="w-5 h-5" />
-                                            </div> 
-                                            Mundial de Constructores
-                                        </h2>
-                                        <div className="space-y-3">
-                                            {constructorsStandings.map((team) => (
-                                                <div key={team.pos} className="bg-f1dark/80 p-4 rounded-xl border border-f1border hover:border-gray-700 transition space-y-3">
-                                                    <div className="flex justify-between items-center">
-                                                        <div className="flex items-center space-x-3.5">
-                                                            <span className={`font-black text-lg w-7 h-7 flex items-center justify-center rounded-lg ${team.pos === 1 ? 'bg-f1red text-white' : 'bg-gray-800 text-gray-300'}`}>
-                                                                {team.pos}
-                                                            </span>
-                                                            <div>
-                                                                <div className="font-black text-base">{team.name}</div>
-                                                                <div className="text-xs text-gray-400 font-semibold">Escudería oficial</div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="text-2xl font-black text-f1red">{team.pts} <span className="text-xs text-gray-400 font-bold">PTS</span></div>
-                                                    </div>
-                                                    <div className="w-full bg-gray-900 h-2 rounded-full overflow-hidden p-0.5 border border-f1border">
-                                                        <div className={`${team.color} h-full rounded-full transition-all duration-500`} style={{ width: `${(team.pts / 250) * 100}%` }}></div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                {/* Configurar Presupuesto */}
+                                <div className="bg-f1card rounded-2xl border border-f1border p-6 shadow-xl">
+                                    <h2 className="text-lg font-black uppercase italic tracking-wider mb-4 pb-3 border-b border-f1border flex items-center gap-2.5">
+                                        <div className="p-2 bg-f1red/10 rounded-lg text-f1red border border-f1red/20">
+                                            <DollarSign className="w-4 h-4" />
+                                        </div> 
+                                        Presupuesto del Regalo
+                                    </h2>
+                                    <div className="flex gap-2">
+                                        {['10€', '15€', '20€', '30€', '50€'].map((b) => (
+                                            <button 
+                                                key={b}
+                                                onClick={() => setBudget(b)}
+                                                className={`flex-1 py-2 rounded-xl text-xs font-bold border transition ${budget === b ? 'bg-f1red border-f1red text-white shadow-md' : 'bg-f1dark border-f1border text-gray-400 hover:text-white'}`}
+                                            >
+                                                {b}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                             </div>
-                        )}
+                        </div>
 
-                        {activeTab === 'calendar' && (
-                            <div className="space-y-8 animate-fadeIn">
-                                <div className="border-b border-f1border pb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div>
-                                        <h1 className="text-3xl sm:text-4xl font-black italic uppercase">Calendario de Grandes Premios 2024</h1>
-                                        <p className="text-sm text-gray-400 mt-1">Explora todas las citas del campeonato mundial de Fórmula 1.</p>
-                                    </div>
-                                    
-                                    {/* Search & Filters */}
-                                    <div className="flex flex-wrap items-center gap-3">
-                                        <div className="relative">
-                                            <Search className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
-                                            <input 
-                                                type="text" 
-                                                placeholder="Buscar circuito o GP..." 
-                                                value={searchTerm}
-                                                onChange={(e) => setSearchTerm(e.target.value)}
-                                                className="bg-f1card border border-f1border rounded-xl pl-10 pr-4 py-2 text-sm text-white focus:outline-none focus:border-f1red transition shadow-inner"
-                                            />
-                                        </div>
-                                        <div className="flex bg-f1card border border-f1border rounded-xl p-1 shadow-inner">
-                                            <button 
-                                                onClick={() => setStatusFilter('all')}
-                                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${statusFilter === 'all' ? 'bg-f1red text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
-                                            >
-                                                Todos
-                                            </button>
-                                            <button 
-                                                onClick={() => setStatusFilter('completed')}
-                                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${statusFilter === 'completed' ? 'bg-f1red text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
-                                            >
-                                                Disputados
-                                            </button>
-                                            <button 
-                                                onClick={() => setStatusFilter('upcoming')}
-                                                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${statusFilter === 'upcoming' ? 'bg-f1red text-white shadow-md' : 'text-gray-400 hover:text-white'}`}
-                                            >
-                                                Próximos
-                                            </button>
-                                        </div>
-                                    </div>
+                        {/* Sección de Revelación de Resultados */}
+                        {results.length > 0 && (
+                            <div className="bg-f1card rounded-3xl border border-f1border p-8 shadow-2xl space-y-6">
+                                <div className="text-center max-w-xl mx-auto">
+                                    <h2 className="text-2xl font-black italic uppercase tracking-wider mb-2">Consulta tu Amigo Invisible</h2>
+                                    <p className="text-xs text-gray-400">Selecciona tu nombre en el desplegable para descubrir a quién te ha tocado regalarle en secreto.</p>
                                 </div>
 
-                                {/* Calendar Grid */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                    {filteredRaces.map((race) => (
-                                        <div key={race.round} className="bg-f1card rounded-2xl border border-f1border p-6 flex flex-col justify-between hover:border-f1red/50 transition duration-300 shadow-xl group">
-                                            <div>
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className="text-xs font-black text-gray-400 uppercase tracking-wider">Ronda {race.round}</span>
-                                                    <span className={`text-xs px-2.5 py-1 rounded-full font-bold uppercase tracking-wider ${race.status === 'completed' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-blue-500/10 text-blue-400 border border-blue-500/20'}`}>
-                                                        {race.status === 'completed' ? 'Finalizado' : 'Próximamente'}
-                                                    </span>
-                                                </div>
-                                                <h3 className="text-xl font-black italic mb-2 group-hover:text-f1red transition duration-200">{race.name}</h3>
-                                                <p className="text-xs text-gray-400 flex items-center gap-1.5 mb-6 font-semibold bg-f1dark/50 p-2.5 rounded-xl border border-f1border/40">
-                                                    <MapPin className="w-4 h-4 text-f1red flex-shrink-0" /> <span>{race.circuit} <strong className="text-gray-200 font-bold">({race.date})</strong></span>
-                                                </p>
-                                            </div>
-                                            <div className="pt-4 border-t border-f1border flex items-center justify-between text-xs">
-                                                <span className="text-gray-400 font-semibold">Ganador / Pole:</span>
-                                                <span className="font-black text-white bg-f1dark px-3 py-1 rounded-lg border border-f1border">{race.winner}</span>
+                                <div className="max-w-md mx-auto space-y-4">
+                                    <select 
+                                        value={selectedGiverId}
+                                        onChange={(e) => {
+                                            setSelectedGiverId(e.target.value);
+                                            setMyAssignment(null);
+                                        }}
+                                        className="w-full bg-f1dark border border-f1border rounded-2xl px-4 py-3 text-sm text-white focus:outline-none focus:border-f1red font-bold"
+                                    >
+                                        <option value="">Selecciona tu nombre...</option>
+                                        {participants.map(p => (
+                                            <option key={p.id} value={p.id}>{p.name}</option>
+                                        ))}
+                                    </select>
+
+                                    <button 
+                                        onClick={handleCheckAssignment}
+                                        disabled={!selectedGiverId}
+                                        className="w-full bg-gradient-to-r from-red-600 to-f1red hover:from-red-500 hover:to-red-600 text-white font-bold py-3 rounded-2xl text-sm uppercase tracking-wider transition shadow-lg disabled:opacity-50"
+                                    >
+                                        Revelar mi Amigo Invisible 🤫
+                                    </button>
+
+                                    {myAssignment && (
+                                        <div className="bg-f1dark/90 border border-f1red/50 rounded-2xl p-6 text-center space-y-3 animate-fadeIn shadow-2xl">
+                                            <div className="text-xs text-f1red font-bold uppercase tracking-widest">Te ha tocado regalar a:</div>
+                                            <div className="text-3xl font-black italic text-white">🎁 {myAssignment.name}</div>
+                                            <div className="bg-f1card p-3 rounded-xl border border-f1border text-xs text-gray-300">
+                                                <strong className="text-f1red">💡 Lista de deseos:</strong> {myAssignment.wishlist}
                                             </div>
                                         </div>
-                                    ))}
+                                    )}
                                 </div>
                             </div>
                         )}
@@ -576,10 +430,10 @@
                     <footer className="bg-f1card border-t border-f1border py-8 mt-16">
                         <div className="max-w-7xl mx-auto px-4 text-center text-xs text-gray-500 flex flex-col sm:flex-row items-center justify-between gap-4">
                             <div className="flex items-center space-x-2">
-                                <div className="bg-f1red px-2 py-0.5 text-xs font-black italic text-white rounded">F1</div>
-                                <span className="font-bold text-gray-400">Championship Hub 2024</span>
+                                <div className="bg-f1red px-2 py-0.5 text-xs font-black italic text-white rounded">XMAS</div>
+                                <span className="font-bold text-gray-400">Amigo Invisible Hub</span>
                             </div>
-                            <p>© 2024 F1 Championship Hub. Datos simulados con fines demostrativos y estéticos.</p>
+                            <p>© 2024 Amigo Invisible Hub. ¡Disfruta de tus regalos!</p>
                         </div>
                     </footer>
                 </div>
